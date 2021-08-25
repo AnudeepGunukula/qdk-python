@@ -3,6 +3,7 @@
 # Licensed under the MIT License.
 ##
 import warnings
+import asyncio
 from typing import Dict, List, TYPE_CHECKING, Union
 from azure.quantum.target import *
 
@@ -31,6 +32,7 @@ class TargetFactory:
             name: _t for t in Target.__subclasses__()
             for _t in [t] + t.__subclasses__()
             for name in _t.target_names
+            if not asyncio.iscoroutinefunction(_t.submit)
         }
 
     def __init__(self):
@@ -44,7 +46,7 @@ class TargetFactory:
             return DEFAULT_TARGETS[provider_id]
  
         warnings.warn(
-            "No default target specified for provider {provider_id}. \
+            f"No default target specified for provider {provider_id}. \
 Please check the provider name and try again or create an issue here: \
 https://github.com/microsoft/qdk-python/issues.")
 
@@ -53,6 +55,8 @@ https://github.com/microsoft/qdk-python/issues.")
     ) -> Target:
         """Create target from provider ID and target name.
 
+        :param workspace: Workspace
+        :type workspace: Workspace
         :param provider_id: Provider name
         :type provider_id: str
         :param name: Target name
@@ -92,6 +96,8 @@ https://github.com/microsoft/qdk-python/issues.")
 
         :param name: Target name
         :type name: str
+        :param workspace: Workspace
+        :type workspace: Workspace
         :param provider_id: Provider name
         :type provider_id: str
         :return: One or more Target objects
